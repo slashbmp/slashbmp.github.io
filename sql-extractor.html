@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>SQL EXTRACTOR v0.0.1</title>
+	<style type="text/css">
+body {
+	background-color: #ffdfba;
+	overflow: hidden;
+}
+html, body, td {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+.code-select, .code-from, .code-bold {
+	font-weight: bold;
+}
+.code-tab {
+	width: 4em;
+}
+.code-table {
+	color: #aa0000;
+}
+.code-reserved {
+	color: #5555cc;
+}
+.code-function {
+	color: #007700;
+}
+	</style>
+  </head>
+
+  <body>
+    <div id="area-tab"></div>
+	<div id="area-display"></div>
+  </body>
+  <script>
+const _hcTabBgColor = "#ffdfba";
+const _hcTabHlColor = "#ffb3ba";
+
+const cssTab = "" +
+	".hc-tab > ul {list-style-type: none; border-top: solid 1px #cccccc; border-bottom: solid 1px #cccccc; margin: 0; padding: 0; overflow-x: hidden; white-space: nowrap;} " +
+	".hc-tab > ul > li {display: inline-block; padding: 0.4em 2.5em; font-size: 1.2em; position: relative; cursor: pointer; margin: 0;} " +
+	".hc-tab > ul > li:hover {background-color: " + _hcTabBgColor + ";} " +
+	".hc-tab > ul > li > div {position: absolute; width: 100%; height: 4px; background-color: " + _hcTabHlColor + "; left: 0; bottom: 0;} " +
+"";
+
+function Tab(area, obj) {
+	const _this = this;
+	const _area = area;
+
+	let _ul, _index, _lastTab;
+
+	let init, select, selectMe;
+
+	selectMe = function () {
+		select(this._index);
+		if (this._onclick) this._onclick();
+	};
+
+	select = function (index) {
+		if (_lastTab) {
+			_lastTab.removeChild(_lastTab.childNodes[1]);
+			_lastTab.style.backgroundColor = "";
+		}
+		_index = index;
+		let li = _ul.childNodes[_index];
+		li.style.backgroundColor = _hcTabBgColor;
+		let div = document.createElement("div");
+		li.appendChild(div);
+		_lastTab = li;
+	};
+
+	init = function (area, obj) {
+		const theStyle = document.createElement("style");
+		theStyle.setAttribute("type", "text/css");
+		theStyle.innerHTML = cssTab;
+		document.getElementsByTagName("head")[0].appendChild(theStyle);
+		_ul = document.createElement("ul");
+		_ul.style.listStyleType = "none";
+		area.appendChild(_ul);
+
+		if (!obj || !obj.items) {
+			return;
+		}
+
+		_area.classList.add("hc-tab");
+
+		for (let i = 0, l = obj.items.length; i < l; i++) {
+			let item = obj.items[i];
+			let li = document.createElement("li");
+			li.innerHTML = item.label;
+			li._index = i;
+			if (item.onClick) li._onclick = item.onClick;
+			li.onclick = selectMe;
+			_ul.appendChild(li);
+		}
+
+		select(0);
+	};
+
+	init(area, obj)
+
+	return {
+		//
+	};
+}
+
+const reserved = ["ACCESSIBLE","ADD","ALL","ALTER","ANALYZE","AND","AS","ASC","ASENSITIVE","BEFORE","BETWEEN","BIGINT","BINARY","BLOB","BOTH","BY","CALL","CASCADE","CASE","CHANGE","CHAR","CHARACTER","CHECK","COLLATE","COLUMN","CONDITION","CONSTRAINT","CONTINUE","CONVERT","CREATE","CROSS","CURRENT_DATE","CURRENT_TIME","CURRENT_TIMESTAMP","CURRENT_USER","CURSOR","DATABASE","DATABASES","DAY_HOUR","DAY_MICROSECOND","DAY_MINUTE","DAY_SECOND","DEC","DECIMAL","DECLARE","DEFAULT","DELAYED","DELETE","DESC","DESCRIBE","DETERMINISTIC","DISTINCT","DISTINCTROW","DIV","DOUBLE","DROP","DUAL","EACH","ELSE","ELSEIF","ENCLOSED","ESCAPED","EXCEPT","EXISTS","EXIT","EXPLAIN","FALSE","FETCH","FLOAT","FLOAT4","FLOAT8","FOR","FORCE","FOREIGN","FROM","FULLTEXT","GENERATED","GET","GRANT","GROUP","HAVING","HIGH_PRIORITY","HOUR_MICROSECOND","HOUR_MINUTE","HOUR_SECOND","IF","IGNORE","IN","INDEX","INFILE","INNER","INOUT","INSENSITIVE","INSERT","INT","INT1","INT2","INT3","INT4","INT8","INTEGER","INTERVAL","INTO","IO_AFTER_GTIDS","IO_BEFORE_GTIDS","IS","ITERATE","JOIN","KEY","KEYS","KILL","LEADING","LEAVE","LEFT","LIKE","LIMIT","LINEAR","LINES","LOAD","LOCALTIME","LOCALTIMESTAMP","LOCK","LONG","LONGBLOB","LONGTEXT","LOOP","LOW_PRIORITY","MASTER_BIND","MASTER_SSL_VERIFY_SERVER_CERT","MATCH","MAXVALUE","MEDIUMBLOB","MEDIUMINT","MEDIUMTEXT","MIDDLEINT","MINUTE_MICROSECOND","MINUTE_SECOND","MOD","MODIFIES","NATURAL","NOT","NO_WRITE_TO_BINLOG","NULL","NUMERIC","ON","OPTIMIZE","OPTIMIZER_COSTS","OPTION","OPTIONALLY","OR","ORDER","OUT","OUTER","OUTFILE","PARTITION","PRECISION","PRIMARY","PROCEDURE","PURGE","RANGE","READ","READS","READ_WRITE","REAL","REFERENCES","REGEXP","RELEASE","RENAME","REPEAT","REPLACE","REQUIRE","RESIGNAL","RESTRICT","RETURN","REVOKE","RIGHT","RLIKE","SCHEMA","SCHEMAS","SECOND_MICROSECOND","SELECT","SENSITIVE","SEPARATOR","SET","SHOW","SIGNAL","SMALLINT","SPATIAL","SPECIFIC","SQL","SQLEXCEPTION","SQLSTATE","SQLWARNING","SQL_BIG_RESULT","SQL_CALC_FOUND_ROWS","SQL_SMALL_RESULT","SSL","STARTING","STORED","STRAIGHT_JOIN","TABLE","TERMINATED","THEN","TINYBLOB","TINYINT","TINYTEXT","TO","TRAILING","TRIGGER","TRUE","UNDO","UNION","UNIQUE","UNLOCK","UNSIGNED","UPDATE","USAGE","USE","USING","UTC_DATE","UTC_TIME","UTC_TIMESTAMP","VALUES","VARBINARY","VARCHAR","VARCHARACTER","VARYING","VIRTUAL","WHEN","WHERE","WHILE","WITH","WRITE","XOR","YEAR_MONTH","ZEROFILL", "END"];
+const functions = ["ASCII","CHAR_LENGTH","CHARACTER_LENGTH","CONCAT","CONCAT_WS","FIELD","FIND_IN_SET","FORMAT","INSERT","INSTR","LCASE","LEFT","LENGTH","LOCATE","LOWER","LPAD","LTRIM","MID","POSITION","REPEAT","REPLACE","REVERSE","RIGHT","RPAD","RTRIM","SPACE","STRCMP","SUBSTR","SUBSTRING","SUBSTRING_INDEX","TRIM","UCASE","UPPER","ABS","ACOS","ASIN","ATAN","ATAN2","AVG","CEIL","CEILING","COS","COT","COUNT","DEGREES","DIV","EXP","FLOOR","GREATEST","LEAST","LN","LOG","LOG10","LOG2","MAX","MIN","MOD","PI","POW","POWER","RADIANS","RAND","ROUND","SIGN","SIN","SQRT","SUM","TAN","TRUNCATE","ADDDATE","ADDTIME","CURDATE","CURRENT_DATE","CURRENT_TIME","CURRENT_TIMESTAMP","CURTIME","DATE","DATEDIFF","DATE_ADD","DATE_FORMAT","DATE_SUB","DAY","DAYNAME","DAYOFMONTH","DAYOFWEEK","DAYOFYEAR","EXTRACT","FROM_DAYS","HOUR","LAST_DAY","LOCALTIME","LOCALTIMESTAMP","MAKEDATE","MAKETIME","MICROSECOND","MINUTE","MONTH","MONTHNAME","NOW","PERIOD_ADD","PERIOD_DIFF","QUARTER","SECOND","SEC_TO_TIME","STR_TO_DATE","SUBDATE","SUBTIME","SYSDATE","TIME","TIME_FORMAT","TIME_TO_SEC","TIMEDIFF","TIMESTAMP","TO_DAYS","WEEK","WEEKDAY","WEEKOFYEAR","YEAR","YEARWEEK","BIN","BINARY","CASE","CAST","COALESCE","CONNECTION_ID","CONV","CONVERT","CURRENT_USER","DATABASE","IF","IFNULL","ISNULL","LAST_INSERT_ID","NULLIF","SESSION_USER","SYSTEM_USER","USER","VERSION",""];
+const arrWhite = [' ', '\t', '\r', '\n'];
+const opers = ['+', '-', '*', '/', '%', '&', '|', '^', '=', '>', '<', '>=', '<=', '<>'];
+function getFirstWord(str) {
+	const arr = str.split("");
+
+	let strOut = "";
+	let nTabCount = 0;
+	for (let i = 0; i < arr.length; i++) {
+		const c = arr[i];
+		if (c == ')') {
+			strOut += ")";
+			if (nTabCount) nTabCount--;
+		}
+		else if (c == '(') {
+			if (!nTabCount && strOut) {
+				return strOut;
+			}
+			strOut += "(";
+			nTabCount++;
+		}
+		else if (nTabCount) {
+			strOut += c;
+		}
+		else if (strOut && !nTabCount && (arrWhite.includes(c) || c == '(' || c == ',')) {
+			return strOut;
+		}
+		else {
+			strOut += c;
+		}
+	}
+	return strOut;
+}
+
+function drawTab(n) {
+	let strTab = "";
+	for (let i = 0; i < n; i++) {
+		strTab += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+	}
+	return strTab;
+}
+
+function formatTab(sql, tabLevel) {
+	if (!tabLevel) tabLevel = 0;
+	let isAfterGroup = false;
+	let isAfterFrom = false;
+	let isAfterSelect = false;
+	let isAfterUnion = false;
+	let isAfterBetween = false;
+	let newSql = "";
+	let arr = sql.split("");
+	let isWhite = false;
+	for (let i = 0; i < arr.length; i++) {
+		const c = arr[i];
+		if (arrWhite.includes(c)) {
+			if (!isWhite) {
+				isWhite = true;
+				newSql += " ";
+			}
+			continue;
+		}
+		else if (c == "," && isAfterSelect) {
+			isWhite = true;
+			newSql += ",<br>" + drawTab(tabLevel + 1);
+			continue;
+		}
+
+		isWhite = false;
+
+		const word = getFirstWord(sql.substr(i));
+
+		//console.log("Got word", word);
+
+		if (word.indexOf("(") == 0) {
+			let isClose = false;
+			if (isAfterFrom) {
+				isClose = true;
+				newSql += "<br>" + drawTab(tabLevel + 1);
+				isAfterFrom = false;
+			}
+			newSql += "<span class=\"code-group\">(" + formatTab(word.substr(1, word.length - 2), tabLevel + 1) + ")</span>";
+			i += word.length - 1;
+			if (isClose) {
+				isAfterGroup = true;
+				// isWhite = true;
+			}
+		}
+		else {
+			const cWord = word.toUpperCase();
+			if (cWord == "SELECT") {
+				newSql += `<span class=\"code-select\">${word}</span><br>` + drawTab(tabLevel + 1);
+				isWhite = true;
+				isAfterSelect = true;
+				isAfterFrom = false;
+				i += 5;
+			}
+			else if (cWord == "FROM") {
+				newSql += "<br>" + drawTab(tabLevel);
+				newSql += `<span class=\"code-from\">${word}</span>`;
+				isAfterSelect = false;
+				isAfterFrom = true;
+				i += 3;
+			}
+			else if (cWord == "JOIN") {
+				newSql += `<span class="code-bold">${word}</span>`;
+				isAfterFrom = true;
+				i += 3;
+			}
+			else if (cWord == "BETWEEN") {
+				isAfterBetween = true;
+				newSql += word;
+				i += word.length - 1;
+			}
+			else if (isAfterBetween && cWord == "AND") {
+				isAfterBetween = false;
+				newSql += word;
+				i += word.length - 1;
+			}
+			else if (isAfterUnion && cWord == "ALL") {
+				newSql += word + "<br>" + drawTab(tabLevel);
+				i += word.length - 1;
+				isAfterFrom = false;
+				isAfterUnion = false;
+			}
+			else if (cWord == "UNION") {
+				newSql += "<br>" + drawTab(tabLevel);
+				newSql += word;
+				i += word.length - 1;
+				isAfterFrom = false;
+				isAfterUnion = true;
+			}
+			else if (cWord == "AND") {
+				newSql += "<br>" + drawTab(tabLevel + 1);
+				newSql += word;
+				i += word.length - 1;
+			}
+			else if (["LEFT", "RIGHT", "INNER", "CROSS", "WHERE", "ORDER", "GROUP", "LIMIT", "ON"].includes(cWord)) {
+				newSql += "<br>" + drawTab(tabLevel);
+				newSql += `<span class="code-bold">${word}</span>`;
+				i += word.length - 1;
+				isAfterFrom = false;
+
+				if (["WHERE", "ON", "AND", "OR"].includes(cWord)) {
+					newSql += "\n" + "\t".repeat(tabLevel + 1);
+					isWhite = true;
+				}
+				else if (cWord == "UNION") {
+					isAfterUnion = true;
+				}
+			}
+			else {
+				// if (isAfterGroup) {
+				// 	newSql += drawTab(tabLevel);
+				// }
+				if (isAfterFrom) {
+					newSql += `<span class="code-table">${word}</span>`;
+				}
+				else {
+					if (functions.includes(cWord)) {
+						newSql += `<span class="code-function">${word}</span>`;
+					}
+					else if (reserved.includes(cWord)) {
+						newSql += `<span class="code-reserved">${word}</span>`;
+					}
+					else newSql += word;
+				}
+				i += word.length - 1;
+				isAfterFrom = false;
+			}
+			isAfterGroup = false;
+		}
+
+
+	}
+	
+	return newSql;
+}
+
+function javaFormat(str) {
+	if (!str) return;
+	const arr = str.split("\n");
+	let strOut = "";
+	for (let i = 0; i < arr.length; i++) {
+		const line = arr[i];
+		if (i > 0) strOut += "+ ";
+		strOut += "\"" + line.replace("\t", "\\t").replace("\r", "");
+		if (i < (arr.length - 1)) strOut += "\\n\"\n";
+		else strOut += "\"";
+	}
+	return strOut;
+}
+
+const dsp = document.getElementById("area-display");
+let codeJava = "";
+let wrapArea = null;
+let areaCode = null;
+let preCode = null;
+let preCodeArea = null;
+let formatted = null;
+let rawCode = null;
+let reCode = null;
+let mapVal = {};
+let varArea = null;
+let isReplaced = false;
+function drawJavaCode() {
+	dsp.innerHTML = "";
+	if (wrapArea) {
+		dsp.appendChild(wrapArea);
+		areaCode.value = javaFormat(rawCode);
+		return;
+	}
+	wrapArea = document.createElement("div");
+	wrapArea.style.position = "relative";
+	wrapArea.style.width = "100%";
+	wrapArea.style.height = "100%";
+	wrapArea.style.backgroundColor = "#ff00ff";
+	wrapArea.style.boxSizing = "border-box";
+	const txt = document.createElement("textarea");
+	txt.style.width = "100%";
+	txt.style.height = "100%";
+	txt.style.boxSizing = "border-box";
+	txt.value = `"SELECT aaa FROM table_b WHERE ccc = 1\\n"
++ "ORDER BY aaa DESC"`;
+	wrapArea.appendChild(txt);
+	areaCode = txt;
+	dsp.style.position = "absolute";
+	dsp.style.top = "4em";
+	dsp.style.bottom = "1em";
+	dsp.style.left = dsp.style.right = "1em";
+	dsp.appendChild(wrapArea);
+
+	txt.addEventListener("click", (e) => {
+		txt.select();
+		txt.focus();
+	});
+	txt.addEventListener("blur", e => {
+		rawCode = eval(e.target.value.trim()) || "";
+	});
+}
+
+function replacedCode() {
+	reCode = rawCode;
+	for (const [key, val] of Object.entries(mapVal)) {
+		if (!val.val) continue;
+		const vaal = (val.isNumber) ? val.val : `'${val.val}'`;
+		reCode = reCode.replaceAll("#{" + key + "}", vaal);
+	}
+	return reCode;
+}
+function drawVarArea() {
+	varArea.theBody.innerHTML = "";
+	const reg = RegExp('#\\{(\\S+)\\}', 'g')
+	let res;
+	const arrKey = [];
+	while ((res = reg.exec(rawCode)) != null) {
+		arrKey.push(res[1]);
+	}
+	arrKey.sort();
+	arrKey.forEach(key => {
+		if (!mapVal[key]) mapVal[key] = {};
+	});
+	const tblVar = document.createElement("table");
+	for (const [key, val] of Object.entries(mapVal)) {
+		const row = tblVar.insertRow();
+		row.insertCell().innerHTML = key;
+		row.insertCell().innerHTML = "=";
+		const inp = document.createElement("input");
+		inp.type = "text";
+		inp.style.width = "10em";
+		if (val.val) inp.value = val.val;
+		row.insertCell().appendChild(inp);
+		const check = document.createElement("input");
+		check.type = "checkbox";
+		if (val.isNumber) check.checked = true;
+		row.insertCell().appendChild(check);
+		row.insertCell().innerHTML = "is number";
+
+		inp.addEventListener("blur", ((val) => {
+			return (e) => {
+				val.val = e.target.value.trim();
+			};
+		})(val));
+		inp.addEventListener("click", e => {
+			inp.focus();
+			inp.select();
+		});
+		check.addEventListener("click", ((val) => {
+			return (e) => {
+				val.isNumber = e.target.checked;
+			};
+		})(val));
+	}
+	varArea.theBody.appendChild(tblVar);
+	const areaBtn = document.createElement("div");
+	areaBtn.style.paddingTop = "10px";
+	const btn = document.createElement("button");
+	btn.innerHTML = (isReplaced) ? "RESTORE" : "REPLACE";
+	btn.style.width = "100%";
+	btn.style.padding = "0.5em 2em";
+	btn.style.boxSizing = "border-box";
+	areaBtn.appendChild(btn);
+	varArea.theBody.appendChild(areaBtn);
+	varArea.style.display = (Object.keys(mapVal).length) ? "block" : "none";
+	btn.addEventListener("click", e => {
+		if (!isReplaced) {
+			preCode.value = replacedCode();
+			preCode.readOnly = true;
+			preCode.style.backgroundColor = "#ffebd5";
+			e.target.innerHTML = "RESTORE";
+		}
+		else {
+			preCode.value = rawCode;
+			preCode.readOnly = false;
+			preCode.style.backgroundColor = "";
+			e.target.innerHTML = "REPLACE";
+		}
+		isReplaced = !isReplaced;
+	});
+}
+function drawSql() {
+	dsp.innerHTML = "";
+	if (preCode) {
+		dsp.appendChild(preCodeArea);
+		drawVarArea();
+		preCode.value = replacedCode();
+		return;
+	}
+	const area = document.createElement("div");
+	// area.style.position = "absolute";
+	area.style.width = "100%";
+	area.style.height = "100%";
+	const textArea = document.createElement("textarea");
+	textArea.style.width = "100%";
+	textArea.style.height = "100%";
+	varArea = document.createElement("div");
+	varArea.style.position = "absolute";
+	varArea.style.right = "30px";
+	varArea.style.top = "10px";
+	varArea.style.backgroundColor = "#b29c82";
+	varArea.style.zIndex = 1;
+
+	const vaHead = document.createElement("div");
+	vaHead.style.padding = "0.5em 1em";
+	vaHead.innerHTML = "VARIABLES";
+	vaHead.style.color = "#ffffff";
+	vaHead.style.backgroundColor = "#332c25";
+
+	varArea.appendChild(vaHead);
+	
+	varArea.theBody = document.createElement("div");
+	varArea.theBody.style.padding = "10px";
+	varArea.appendChild(varArea.theBody);
+
+	vaHead.addEventListener("mousedown", e => {
+		varArea.isDragging = true;
+		const film = document.createElement("div");
+		film.style.position = "fixed";
+		film.style.left = film.style.top = film.style.bottom = film.style.right = "0";
+		film.style.backgroundColor = "rgba(0, 0, 0, 0.01)";
+		film.style.zIndex = 2;
+		document.body.appendChild(film);
+		varArea.film = film;
+		varArea.oX = e.offsetX;
+		varArea.oY = e.offsetY;
+		const areaRect = area.getBoundingClientRect();
+		const varRect = varArea.getBoundingClientRect();
+		varArea.style.left = Math.round(varRect.x - areaRect.x) + "px";
+		varArea.style.top = Math.round(varRect.y - areaRect.y) + "px";
+		varArea.style.right = varArea.style.bottom = "";
+		varArea.aTop = Math.round(areaRect.top);
+		varArea.aRect = areaRect;
+		varArea.w = Math.round(varRect.width);
+		varArea.h = Math.round(varRect.height);
+	});
+
+	window.addEventListener("mousemove", e => {
+		if (!varArea.isDragging) return;
+		let x = e.offsetX - varArea.oX;
+		let y = e.offsetY - varArea.oY - varArea.aTop;
+		if (x < 0) x = 0;
+		if (y < 0) y = 0;
+		const xLmt = Math.round(varArea.aRect.x + varArea.aRect.width);
+		const yLmt = Math.round(varArea.aRect.y + varArea.aRect.height);
+		if ((x + varArea.w + 30) > xLmt) x = xLmt - varArea.w - 30;
+		if ((y + varArea.h + 10) > yLmt) y = yLmt - varArea.h - 10;
+		varArea.style.left = x + "px";
+		varArea.style.top = y + "px";
+	});
+
+	window.addEventListener("mouseup", e => {
+		if (!varArea.isDragging) return;
+		varArea.isDragging = false;
+		if (varArea.film) {
+			document.body.removeChild(varArea.film);
+			varArea.film = null;
+		}
+	});
+
+	area.appendChild(varArea)
+	area.appendChild(textArea);
+	textArea.value = rawCode;
+
+	textArea.addEventListener("blur", e => {
+		if (!isReplaced) {
+			rawCode = e.target.value.trim();
+			drawVarArea();
+		}
+	});
+	
+	dsp.appendChild(area)
+	preCode = textArea;
+	preCodeArea = area;
+
+	drawVarArea();
+}
+
+function drawFormat() {
+	dsp.innerHTML = "";
+	if (formatted) {
+		formatted.innerHTML = formatTab((isReplaced) ? reCode : rawCode);
+		dsp.appendChild(formatted);
+		return;
+	}
+	formatted = document.createElement("div");
+	formatted.style.backgroundColor = "#fff2e3";
+	formatted.style.whiteSpace = "nowrap";
+	formatted.style.position = "relative";
+	formatted.style.width = "100%";
+	formatted.style.height = "100%";
+	formatted.style.overflow = "auto";
+	formatted.innerHTML = formatTab((isReplaced) ? reCode : rawCode);
+	dsp.appendChild(formatted);
+}
+
+function main() {
+	const tab = new Tab(document.getElementById("area-tab"), {
+		"items": [
+			{
+				"label": "JAVA CODE",
+				"onClick": () => {
+					drawJavaCode();
+				}
+			},
+			{
+				"label": "SQL",
+				"onClick": () => {
+					drawSql();
+				}
+			},
+			{
+				"label": "FORMATTED",
+				"onClick": () => {
+					drawFormat();
+				}
+			}
+		]
+	});
+	drawJavaCode();
+}
+
+window.addEventListener("load", main);
+  </script>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "etc-scripts",
+  "version": "1.0.0",
+  "description": "etc script",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "but",
+  "license": "ISC"
+}
