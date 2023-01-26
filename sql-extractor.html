@@ -332,6 +332,7 @@ function drawJavaCode() {
 	txt.style.boxSizing = "border-box";
 	txt.value = `"SELECT aaa FROM table_b WHERE ccc = 1\\n"
 + "ORDER BY aaa DESC"`;
+	rawCode = eval(txt.value.trim()) || "";
 	wrapArea.appendChild(txt);
 	areaCode = txt;
 	dsp.style.position = "absolute";
