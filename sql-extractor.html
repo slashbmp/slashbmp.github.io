@@ -5,7 +5,7 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>SQL EXTRACTOR v0.0.1</title>
+    <title>SQL EXTRACTOR v0.0.2</title>
 	<style type="text/css">
 body {
 	background-color: #ffdfba;
@@ -332,6 +332,7 @@ function drawJavaCode() {
 	txt.style.boxSizing = "border-box";
 	txt.value = `"SELECT aaa FROM table_b WHERE ccc = 1\\n"
 + "ORDER BY aaa DESC"`;
+	rawCode = eval(txt.value.trim()) || "";
 	wrapArea.appendChild(txt);
 	areaCode = txt;
 	dsp.style.position = "absolute";
