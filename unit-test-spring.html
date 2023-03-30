@@ -238,10 +238,15 @@ class SpringTestGenerator {
 							const beginArg = arrContent.indexOf("(", i);
 							const endArg = this.getEndOfBlock2(arrContent, beginArg);
 							const args = (arrContent.slice(beginArg + 1, endArg)).join("").trim();
+							const arrArgs = args.split("");
 							if (args.length) {
-								const arrArg = args.split(",");
-								arrArg.forEach(arg => {
-									const arrTV = /^(.+)(\s+)(\w+)$/.exec(arg.trim());
+								let nArgComma = 0;
+								let iArgComma = 0;
+								do {
+									nArgComma = this.findNextCommas(arrArgs, iArgComma);
+									const strEle = arrArgs.slice(iArgComma, nArgComma).join("").trim();
+									console.log("Arg here", newFunc.name, strEle);
+									const arrTV = /^(.+)(\s+)(\w+)$/.exec(strEle);
 									if (arrTV) {
 										newFunc.args[arrTV[3]] = {
 											type: arrTV[1],
@@ -255,8 +260,9 @@ class SpringTestGenerator {
 											useFunc: []
 										});
 									}
-
-								});
+									iArgComma = nArgComma + 1;
+								}
+								while (nArgComma < args.length);
 							}
 							this.inBlock.type = "function";
 							this.inBlock.name = name;
@@ -487,6 +493,9 @@ class SpringTestGenerator {
 			else if (c === "(") {
 				i = this.getEndOfBlock2(arrTxt, i);
 			}
+			else if (c === "<") {
+				i = this.getEndOfBlock3(arrTxt, i);
+			}
 		}
 		return arrTxt.length;
 	}
@@ -510,6 +519,20 @@ class SpringTestGenerator {
 			const c = arrText[i];
 			if (c === "(") count++;
 			else if (c === ")") {
+				count--;
+				if (count === 0) return i;
+			}
+		}
+
+		return -1;
+	}
+
+	getEndOfBlock3(arrText, index) {
+		let count = 1
+		for (let i = index + 1; i < arrText.length; i++) {
+			const c = arrText[i];
+			if (c === "<") count++;
+			else if (c === ">") {
 				count--;
 				if (count === 0) return i;
 			}
