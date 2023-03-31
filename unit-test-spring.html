@@ -731,6 +731,16 @@ public class ${this.className}Test {
 				found = true;
 				console.log("declare", strChk);
 			}
+
+			//perform function
+			arrChk = found ? null : /^(\S+)\(/.exec(strChk);
+			if (arrChk) {
+				found = true;
+				const nEnd = content.indexOf(";", i);
+				const strAll = content.slice(i, nEnd).join("").trim();
+				this.checkStatement(strAll, 555, func);
+			}
+
 			if (!found) {
 				console.log("Unknown(" + strChk + ")");
 			}
@@ -767,7 +777,7 @@ public class ${this.className}Test {
 					});
 					if (exInject.length) exInject = "//use " + exInject.substr(2);
 				}
-				midMocks += `\t// when(${key}(${obj.args})).doReturn(${obj.returnType});${exInject}\n`;
+				midMocks += `\t// when(${key}(${obj.args})).thenReturn(${obj.returnType});${exInject}\n`;
 			}
 			else if (obj.area === "class") {
 				const theDo = (obj.returnType === "void") ? "doNothing()" : `doReturn(${obj.returnType})`;
