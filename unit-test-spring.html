@@ -238,10 +238,15 @@ class SpringTestGenerator {
 							const beginArg = arrContent.indexOf("(", i);
 							const endArg = this.getEndOfBlock2(arrContent, beginArg);
 							const args = (arrContent.slice(beginArg + 1, endArg)).join("").trim();
+							const arrArgs = args.split("");
 							if (args.length) {
-								const arrArg = args.split(",");
-								arrArg.forEach(arg => {
-									const arrTV = /^(.+)(\s+)(\w+)$/.exec(arg.trim());
+								let nArgComma = 0;
+								let iArgComma = 0;
+								do {
+									nArgComma = this.findNextCommas(arrArgs, iArgComma);
+									const strEle = arrArgs.slice(iArgComma, nArgComma).join("").trim();
+									console.log("Arg here", newFunc.name, strEle);
+									const arrTV = /^(.+)(\s+)(\w+)$/.exec(strEle);
 									if (arrTV) {
 										newFunc.args[arrTV[3]] = {
 											type: arrTV[1],
@@ -255,8 +260,9 @@ class SpringTestGenerator {
 											useFunc: []
 										});
 									}
-
-								});
+									iArgComma = nArgComma + 1;
+								}
+								while (nArgComma < args.length);
 							}
 							this.inBlock.type = "function";
 							this.inBlock.name = name;
@@ -315,6 +321,59 @@ class SpringTestGenerator {
 		return -1;
 	}
 
+	extractCondition(arrCon) {
+		const result = [];
+		let nBegin = 0;
+		let i = 0;
+		for (; i < arrCon.length; i++) {
+			const c = arrCon[i];
+			if (c === " " || c === "\t" || c === "\r" || c === "\n") continue;
+			else if (c === "&" && arrCon[i + 1] === "&") {
+				const strPush = arrCon.slice(nBegin, i).join("").trim();
+				if (strPush) result.push(strPush);
+				i += 1;
+				nBegin = i + 1;
+			}
+			else if (c === "|" && arrCon[i + 1] === "|") {
+				const strPush = arrCon.slice(nBegin, i).join("").trim();
+				if (strPush) result.push(strPush);
+				i += 1;
+				nBegin = i + 1;
+			}
+			else if (c === "(") {
+				let foundFunc = false;
+				const strChkFunc = arrCon.slice(nBegin, i + 1).join("").trim();
+				if (strChkFunc) {
+					const arrChkFunc = /^((\w|\.)+)\($/.exec(strChkFunc);
+					if (arrChkFunc) {
+						//it is function
+						const nRight = this.getEndOfBlock2(arrCon, i);
+						const strFunc = arrCon.slice(nBegin, nRight).join("").trim();
+						console.log(">>>>>>>> Function in condition", strFunc);
+						this.checkStatement(strFunc, 555, this.analysingFunc);
+						foundFunc = true;
+						i = nRight
+						nBegin = i + 1
+					}
+				}
+				if (!foundFunc) {
+					const theEnd = this.getEndOfBlock2(arrCon, i);
+					const subResult = this.extractCondition(arrCon.slice(i + 1, theEnd));
+					if (subResult && subResult.length) {
+						subResult.forEach(sr => {
+							result.push(sr);
+						});
+					}
+					i = theEnd;
+					nBegin = i + 1;
+				}
+			}
+		}
+		const lastCon = (i > nBegin) ? arrCon.slice(nBegin).join("").trim("") : null;
+		if (lastCon) result.push(lastCon);
+		return result;
+	}
+
 	checkCondition(strChk, line, func) {
 		const arrChk = /^(.+)(==|\!=|\<|\>|\>=|\<=)(.+)$/.exec(strChk);
 		if (arrChk) {
@@ -365,16 +424,24 @@ class SpringTestGenerator {
 				let i = 0;
 				let n;
 				let argCount = 0;
-				do {
-					n = this.findNextCommas(strArgs.split(""), i);
-					const argNow = arrArgs.slice(i, n).join("").trim();
-					if (argNow) {
-						this.checkStatement(argNow, line, func);
-						argCount++;
+				if (arrArgs.length) {
+					do {
+						console.log("Begin loop", strArgs);
+						n = this.findNextCommas(arrArgs, i);
+						if (n < i) {
+							this.checkStatement(strArgs, 555, func)
+							break;
+						}
+						const argNow = arrArgs.slice(i, n).join("").trim();
+						if (argNow) {
+							this.checkStatement(argNow, line, func);
+							argCount++;
+						}
+						i = n + 1;
+						console.log(n, "<", arrArgs.length);
 					}
-					i = n + 1;
+					while (n < arrArgs.length);
 				}
-				while (n < arrArgs.length);
 				const strSubArg = this.mockAny(argCount);
 				const returnType = leftVar ? leftVar.type : "?";
 				if (!funcOwner) {
@@ -487,6 +554,9 @@ class SpringTestGenerator {
 			else if (c === "(") {
 				i = this.getEndOfBlock2(arrTxt, i);
 			}
+			else if (c === "<") {
+				i = this.getEndOfBlock3(arrTxt, i);
+			}
 		}
 		return arrTxt.length;
 	}
@@ -515,7 +585,21 @@ class SpringTestGenerator {
 			}
 		}
 
-		return -1;
+		return arrText.length;
+	}
+
+	getEndOfBlock3(arrText, index) {
+		let count = 1
+		for (let i = index + 1; i < arrText.length; i++) {
+			const c = arrText[i];
+			if (c === "<") count++;
+			else if (c === ">") {
+				count--;
+				if (count === 0) return i;
+			}
+		}
+
+		return arrText.length;
 	}
 
 	funcStyle(str) {
@@ -570,11 +654,17 @@ public class ${this.className}Test {
 	}
 
 	analystFunction(func) {
+		this.analysingFunc = func;
 		const content = this.storedContent;
 		// console.log("First char is ", content[func.begin], "Last char is", content[func.end]);
 		func.vars = [];
 		func.mock = {};
+		let lmttt = 0;
 		for (let i = func.begin; i <= func.end; i++) {
+			if ((lmttt++) > 500000) {
+				console.log("Break by limit");
+				break;
+			}
 			const c = content[i];
 			
 			if (c === " " || c === "\t" || c === "}" || c === "{" || c === "\r" || c === "\n") continue;
@@ -606,14 +696,12 @@ public class ${this.className}Test {
 				const conditions = content.slice(markLeft + 1, markRight).join("").trim();
 				console.log("if", conditions);
 				const arrConditions = conditions.split("");
-				let n = 0;
-				do {
-					const r = this.findNextConditionStmt(arrConditions, n);
-					const strCon = arrConditions.slice(n, r).join("").trim();
-					this.checkCondition(strCon, 555, func);
-					n = r + 2;
+				const cons = this.extractCondition(arrConditions)
+				if (cons && cons.length) {
+					cons.forEach(con => {
+						this.checkCondition(con, 555, func);
+					});
 				}
-				while (n < conditions.length);
 				end = markRight;
 			}
 
@@ -708,6 +796,24 @@ public class ${this.className}Test {
 				found = true;
 				console.log("declare", strChk);
 			}
+
+			//perform function
+			arrChk = found ? null : /^(\S+)\(/.exec(strChk);
+			if (arrChk) {
+				found = true;
+				const nEnd = content.indexOf(";", i);
+				const strAll = content.slice(i, nEnd).join("").trim();
+				const chkLamda = /^(.+)(\s*)\->(\s*)\{/.exec(strAll);
+				if (chkLamda) {
+					console.log("Found lamda function", chkLamda);
+					end = content.indexOf("{", i);
+				}
+				else {
+					this.checkStatement(strAll, 555, func);
+					end = nEnd;
+				}
+			}
+
 			if (!found) {
 				console.log("Unknown(" + strChk + ")");
 			}
@@ -744,7 +850,7 @@ public class ${this.className}Test {
 					});
 					if (exInject.length) exInject = "//use " + exInject.substr(2);
 				}
-				midMocks += `\t// when(${key}(${obj.args})).doReturn(${obj.returnType});${exInject}\n`;
+				midMocks += `\t// when(${key}(${obj.args})).thenReturn(${obj.returnType});${exInject}\n`;
 			}
 			else if (obj.area === "class") {
 				const theDo = (obj.returnType === "void") ? "doNothing()" : `doReturn(${obj.returnType})`;
