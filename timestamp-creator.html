@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<title>Timestamp Creator v0.0.1</title>
+	<style type="text/css">
+body {
+	background-color: #222222;
+	color: #bbbbbb;
+	font-size: 16px;
+	font-family: Arial, Helvetica, sans-serif;
+	margin: 0;
+	padding: 20px;
+}
+input[type=text],
+input[type=password],
+select,
+textarea {
+	padding: 8px;
+	box-sizing: border-box;
+	border: solid 1px #bbbbbb;
+	background-color: #666666;
+	color: #bbbbbb;
+	border-radius: 5px;
+}
+input[type=submit],
+input[type=button],
+button {
+	border-radius: 5px;
+	border: solid 1px #888888;
+	background-color: #444444;
+	color: #aaaaaa;
+	padding: 8px;
+}
+input[type=submit]:hover,
+input[type=button]:hover,
+button:hover {
+	border-color: #aaaaaa;
+	color: #bbbbbb;
+	background-color: #666666;
+}
+.table {
+	display: table;
+	border-spacing: 4px;
+}
+.row {
+	display: table-row;
+}
+.column {
+	display: table-cell;
+}
+#form-create-time input[name=year] {
+	width: 100px;
+}
+#form-create-time input[name=date] {
+	width: 50px;
+}
+#form-create-time input[name=timestamp],
+#form-create-time input[name=gmt],
+#form-create-time input[name=local] {
+	width: 362px;
+}
+	</style>
+</head>
+
+<body>
+	<form id="form-create-time">
+		<div>
+			<input type="text" name="year">
+			<select name="month">
+				<option value="0">January</option>
+				<option value="1">Fabruary</option>
+				<option value="2">March</option>
+				<option value="3">April</option>
+				<option value="4">May</option>
+				<option value="5">June</option>
+				<option value="6">July</option>
+				<option value="7">August</option>
+				<option value="8">September</option>
+				<option value="9">October</option>
+				<option value="10">November</option>
+				<option value="11">December</option>
+			</select>
+			<input type="text" name="date">
+			<input type="text" name="time">
+			<input type="button" value="GENERATE" id="btn-generate">
+		</div>
+	
+		<div class="table">
+			<div class="row">
+				<div class="column">Timestamp</div>
+				<div class="column"><input type="text" name="timestamp"></div>
+				<div class="column"><input type="button" value="COPY" id="btn-copy"></div>
+				<div class="column"><input type="button" value="DISPLAY" id="btn-display"></div>
+			</div>
+			<div class="row">
+				<div class="column">GMT</div>
+				<div class="column"><input type="text" name="gmt" readonly="readonly"></div>
+			</div>
+			<div class="row">
+				<div class="column">Local</div>
+				<div class="column"><input type="text" name="local" readonly="readonly"></div>
+			</div>
+		</div>
+	</form>
+<script>
+function TimestampConvertor() {
+
+var _form;
+var _timeFocus = 0;
+var _timeInput = null;
+
+var generateTime = () => {
+	var year = parseInt(_form.year.value);
+	var month = parseInt(_form.month.value);
+	var date = parseInt(_form.date.value);
+	var maxDate = getLastDateOfMonth(year, month);
+	if (date > maxDate) {
+		date = maxDate;
+		_form.date.value = date;
+	}
+	var d = new Date();
+	d.setFullYear(year, month, date);
+	d.setHours(_form.time._h, _form.time._m, _form.time._s, 0);
+	_form.timestamp.value = d.getTime();
+};
+
+var copy = () => {
+	_form.timestamp.select();
+	window.document.execCommand("copy");
+	var tmp = _form.timestamp.value;
+	_form.timestamp.value = "Copied!!";
+	setTimeout(() => {
+		_form.timestamp.value = tmp;
+	}, 300);
+}
+
+var displayTime = () => {
+	if (_form.timestamp.value == "") {
+		return;
+	}
+	var d = new Date();
+	d.setTime(_form.timestamp.value);
+	_form.local.value = d.toString();
+	_form.gmt.value = d.toUTCString();
+};
+
+var getLastDateOfMonth = (year, month) => {
+	var d = new Date();
+	d.setFullYear(year, month + 1, 1);
+	d.setDate(0);
+	return d.getDate();
+};
+
+var autoSelect = e => {
+	e.target.select();
+};
+
+var leadZero = (n) => {
+	if (n < 10) return "0" + n;
+	return n;
+};
+
+var timeFocus = (flag) => {
+	_timeFocus = flag;
+	if (flag == 0) {
+		_form.time.setSelectionRange(0, 2);
+	}
+	else if (flag == 1) {
+		_form.time.setSelectionRange(3, 5);
+	}
+	else {
+		_form.time.setSelectionRange(6, 8);
+	}
+}
+
+var timeDisplay = () => {
+	_form.time.value = leadZero(_form.time._h) + ":" + leadZero(_form.time._m) + ":" + leadZero(_form.time._s);
+};
+
+var timeReplace = (n) => {
+	var n = parseInt(n);
+	if (_timeFocus == 0 && n <= 23) {
+		_form.time._h = n;
+	}
+	else if (_timeFocus == 1 && n <= 59) {
+		_form.time._m = n;
+	}
+	else if (n <= 59) {
+		_form.time._s = n;
+	}
+};
+
+var initial = () => {
+	_form = document.getElementById("form-create-time");
+	var d = new Date();
+	_form.year.value = d.getFullYear();
+	_form.month.value = d.getMonth();
+	_form.date.value = d.getDate();
+	_form.time._h = d.getHours();
+	_form.time._m = d.getMinutes();
+	_form.time._s = d.getSeconds();
+	timeDisplay();
+	_form.year.addEventListener("click", autoSelect);
+	_form.date.addEventListener("click", autoSelect);
+	_form.time.addEventListener("paste", e => e.preventDefault());
+	_form.time.addEventListener("click", e => {
+		var n = e.target.selectionStart;
+		if (n <= 2) {
+			timeFocus(0);
+		}
+		else if (n <= 5) {
+			timeFocus(1);
+		}
+		else {
+			timeFocus(2);
+		}
+	});
+	_form.time.addEventListener("keyup", e => {
+		e.preventDefault();
+		if (isNaN(e.key)) {
+			return;
+		}
+		if (_timeInput == null) {
+			timeReplace(e.key);
+			_timeInput = e.key;
+		}
+		else {
+			timeReplace(_timeInput + e.key);
+			_timeInput = null;
+			_timeFocus++;
+			if (_timeFocus > 2) {
+				_timeFocus = 0;
+			}
+		}
+		timeDisplay();
+		timeFocus(_timeFocus);
+	});
+	document.getElementById("btn-generate").addEventListener("click", (e) => {
+		generateTime();
+		displayTime();
+	});
+	document.getElementById("btn-copy").addEventListener("click", e => {
+		copy();
+	});
+	document.getElementById("btn-display").addEventListener("click", e => {
+		displayTime();
+	});
+};
+
+this.initial = initial;
+
+}
+
+const t = new TimestampConvertor();
+t.initial();
+</script>
+</body>
+
+</html>
