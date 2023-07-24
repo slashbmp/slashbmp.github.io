@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<title></title>
+	<style type="text/css">
+body {
+	background-color: #222222;
+	color: #bbbbbb;
+	font-size: 16px;
+	font-family: Arial, Helvetica, sans-serif;
+	margin: 0;
+	padding: 20px;
+}
+input[type=text],
+input[type=password],
+select,
+textarea {
+	padding: 8px;
+	box-sizing: border-box;
+	border: solid 1px #bbbbbb;
+	background-color: #666666;
+	color: #bbbbbb;
+	border-radius: 5px;
+}
+input[type=submit],
+input[type=button],
+button {
+	border-radius: 5px;
+	border: solid 1px #888888;
+	background-color: #444444;
+	color: #aaaaaa;
+	padding: 8px;
+}
+input[type=submit]:hover,
+input[type=button]:hover,
+button:hover {
+	border-color: #aaaaaa;
+	color: #bbbbbb;
+	background-color: #666666;
+}
+.table {
+	display: table;
+	border-spacing: 4px;
+}
+.row {
+	display: table-row;
+}
+.column {
+	display: table-cell;
+}
+#inp-main {
+  width: 100%;
+  height: 15em;
+}
+#area-result-wrap {
+  display: none;
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1em;
+}
+#area-option-multiline {
+	display: none;
+}
+	</style>
+</head>
+
+<body>
+	<textarea id="inp-main"></textarea><br>
+	<button id="btn-generate">GENERATE</button>
+	<div id="area-result-wrap">
+		<div id="area-tab"></div>
+		<div><button onclick="copyText(this)" style="margin-top: 10px; margin-right: 10px;">Copy</button><span id="area-option-multiline"><input type="checkbox"> Multiline string</span></div>
+		<pre id="area-result"></pre>
+	</div>
+<script>
+const _hcTabBgColor = "#444444";
+const _hcTabHlColor = "#aaaaaa";
+
+const cssTab = "" +
+	".hc-tab > ul {list-style-type: none; border-top: solid 1px #cccccc; border-bottom: solid 1px #cccccc; margin: 0; padding: 0; overflow-x: hidden; white-space: nowrap;} " +
+	".hc-tab > ul > li {display: inline-block; padding: 0.4em 2.5em; font-size: 1.2em; position: relative; cursor: pointer; margin: 0;} " +
+	".hc-tab > ul > li:hover {background-color: " + _hcTabBgColor + ";} " +
+	".hc-tab > ul > li > div {position: absolute; width: 100%; height: 4px; background-color: " + _hcTabHlColor + "; left: 0; bottom: 0;} " +
+"";
+
+function Tab(area, obj) {
+	const _this = this;
+	const _area = area;
+
+	let _ul, _index, _lastTab;
+
+	let init, select, selectMe;
+
+	selectMe = function () {
+		select(this._index);
+		if (this._onclick) this._onclick();
+	};
+
+	select = function (index) {
+		if (_lastTab) {
+			_lastTab.removeChild(_lastTab.childNodes[1]);
+			_lastTab.style.backgroundColor = "";
+		}
+		_index = index;
+		let li = _ul.childNodes[_index];
+		li.style.backgroundColor = _hcTabBgColor;
+		let div = document.createElement("div");
+		li.appendChild(div);
+		_lastTab = li;
+	};
+
+	init = function (area, obj) {
+		const theStyle = document.createElement("style");
+		theStyle.setAttribute("type", "text/css");
+		theStyle.innerHTML = cssTab;
+		document.getElementsByTagName("head")[0].appendChild(theStyle);
+		_ul = document.createElement("ul");
+		_ul.style.listStyleType = "none";
+		area.appendChild(_ul);
+
+		if (!obj || !obj.items) {
+			return;
+		}
+
+		_area.classList.add("hc-tab");
+
+		for (let i = 0, l = obj.items.length; i < l; i++) {
+			let item = obj.items[i];
+			let li = document.createElement("li");
+			li.innerHTML = item.label;
+			li._index = i;
+			if (item.onClick) li._onclick = item.onClick;
+			li.onclick = selectMe;
+			_ul.appendChild(li);
+		}
+
+		select(0);
+	};
+
+	init(area, obj)
+
+	return {
+		//
+	};
+}
+const dataType = {
+	"TINYINT": {
+		"var": "Integer",
+		"varFunc": "Int",
+		"sample": 5,
+		"sampleBuilder": 5,
+		"sampleRequest": 5,
+		"jsType": "number"
+	},
+	"SMALLINT": {
+		"var": "Integer",
+		"varFunc": "Int",
+		"sample": 55,
+		"sampleBuilder": 55,
+		"sampleRequest": 55,
+		"jsType": "number"
+	},
+	"INT": {
+		"var": "Integer",
+		"varFunc": "Int",
+		"sample": 5555,
+		"sampleBuilder": 5555,
+		"sampleRequest": 5555,
+		"jsType": "number"
+	},
+	"MEDIUMINT": {
+		"var": "Long",
+		"varFunc": "Long",
+		"sample": 55555,
+		"sampleBuilder": 55555,
+		"sampleRequest": 55555,
+		"jsType": "number"
+	},
+	"YEAR": {
+		"var": "Integer",
+		"varFunc": "Int",
+		"sample": 2019,
+		"sampleBuilder": 2019,
+		"sampleRequest": 2019,
+		"jsType": "number"
+	},
+	"FLOAT": {
+		"var": "Float",
+		"varFunc": "Float",
+		"sample": 15.555,
+		"sampleBuilder": 15.555,
+		"sampleRequest": 15.555,
+		"jsType": "number"
+	},
+	"DOUBLE": {
+		"var": "Double",
+		"varFunc": "Double",
+		"sample": 15.555,
+		"sampleBuilder": 15.555,
+		"sampleRequest": 15.555,
+		"jsType": "number"
+	},
+	"TIMESTAMP": {
+		"var": "Timestamp",
+		"varFunc": "Timestamp",
+		"sample": "2019-01-01 00:00:00.000",
+		"sampleBuilder": "new Timestamp(1592586000000L)",
+		"sampleRequest": 1592586000000,
+		"jsType": "timestamp"
+	},
+	"DATE": {
+		"var": "Timestamp",
+		"varFunc": "Timestamp",
+		"sample": "2019-01-01",
+		"sampleBuilder": "new Timestamp(1592586000000L)",
+		"sampleRequest": 1592586000000,
+		"jsType": "timestamp"
+	},
+	"DATETIME": {
+		"var": "Timestamp",
+		"varFunc": "Timestamp",
+		"sample": "2019-01-01 00:00:00.000",
+		"sampleBuilder": "new Timestamp(1592586000000L)",
+		"sampleRequest": 1592586000000,
+		"jsType": "timestamp"
+	},
+	"TINYBLOB": {
+		"var": "Blob",
+		"varFunc": "Blob",
+		"sample": "NULL",
+		"sampleBuilder": "blobValue",
+		"sampleRequest": "blobValue",
+		"jsType": "blob"
+	},
+	"MEDIUMBLOB": {
+		"var": "Blob",
+		"varFunc": "Blob",
+		"sample": "NULL",
+		"sampleBuilder": "blobValue",
+		"sampleRequest": "blobValue",
+		"jsType": "blob"
+	},
+	"LONGBLOB": {
+		"var": "Blob",
+		"varFunc": "Blob",
+		"sample": "NULL",
+		"sampleBuilder": "blobValue",
+		"sampleRequest": "blobValue",
+		"jsType": "blob"
+	},
+	"BLOB": {
+		"var": "Blob",
+		"varFunc": "Blob",
+		"sample": "NULL",
+		"sampleBuilder": "blobValue",
+		"sampleRequest": "blobValue",
+		"jsType": "blob"
+	},
+	"BINARY": {
+		"var": "byte[]",
+		"varFunc": "Bytes",
+		"sample": "NULL",
+		"sampleBuilder": "binValue",
+		"sampleRequest": "binValue",
+		"jsType": "blob"
+	},
+	"VARBINARY": {
+		"var": "byte[]",
+		"varFunc": "Bytes",
+		"sample": "NULL",
+		"sampleBuilder": "binValue",
+		"sampleRequest": "binValue",
+		"jsType": "blob"
+	},
+	"BIT": {
+		"var": "Boolean",
+		"varFunc": "Boolean",
+		"sample": 1,
+		"sampleBuilder": 1,
+		"sampleRequest": true,
+		"jsType": "boolean"
+	},
+	"CHAR": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'A'",
+		"sampleBuilder": "'A'",
+		"sampleRequest": "A",
+		"jsType": "string"
+	},
+	"VARCHAR": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'VarChar'",
+		"sampleBuilder": "\"stringValue\"",
+		"sampleRequest": "stringValue",
+		"jsType": "string"
+	},
+	"TINYTEXT": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'TinyText'",
+		"sampleBuilder": "\"stringValue\"",
+		"sampleRequest": "stringValue",
+		"jsType": "string"
+	},
+	"MEDIUMTEXT": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'MediumText'",
+		"sampleBuilder": "\"stringValue\"",
+		"sampleRequest": "stringValue",
+		"jsType": "string"
+	},
+	"LONGTEXT": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'LongText'",
+		"sampleBuilder": "\"stringValue\"",
+		"sampleRequest": "stringValue",
+		"jsType": "string"
+	},
+	"TEXT": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'Text'",
+		"sampleBuilder": "\"stringValue\"",
+		"sampleRequest": "stringValue",
+		"jsType": "string"
+	},
+	"ENUM": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'Enum'",
+		"sampleBuilder": "enumValue",
+		"sampleRequest": "enumValue",
+		"jsType": "string"
+	},
+	"SET": {
+		"var": "String",
+		"varFunc": "String",
+		"sample": "'Set'",
+		"sampleBuilder": "setValue",
+		"sampleRequest": "setValue",
+		"jsType": "string"
+	},
+	"DECIMAL": {
+		"var": "BigDecimal",
+		"varFunc": "BigDecimal",
+		"sample": 50.5500,
+		"sampleBuilder": 50.5500,
+		"sampleRequest": 50.5500,
+		"jsType": "number"
+	},
+	"BIGINT": {
+		"var": "Integer",
+		"varFunc": "Int",
+		"sample": 1234567890,
+		"sampleBuilder": 1234567890,
+		"sampleRequest": 1234567890,
+		"jsType": "number"
+	},
+	"TIME": {
+		"var": "Time",
+		"varFunc": "Time",
+		"sample": "18:30:00.000",
+		"sampleBuilder": "new Time()",
+		"sampleRequest": 1592586000000,
+		"jsType": "timestamp"
+	},
+	"GEOMETRY": {
+		"var": "Geometry",
+		"varFunc": "Geometry",
+		"sample": "POINT(18 -63)",
+		"sampleBuilder": "geometryValue",
+		"sampleRequest": "geometryValue",
+		"jsType": "string"
+	}
+}
+
+const str = `  \`ID\` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+  \`TICKET_ID\` varchar(12) NOT NULL,
+  \`CARD_NO\` varchar(30) NOT NULL,
+  \`CARD_TYPE\` varchar(15) DEFAULT NULL,
+  \`DOB\` date DEFAULT NULL,
+  \`NATIONALITY\` varchar(100) DEFAULT NULL,
+  \`DATE_OF_ISSUE\` date DEFAULT NULL,
+  \`DATE_OF_EXPIRY\` date DEFAULT NULL,
+  \`ISSUE_BY\` varchar(100) DEFAULT NULL,
+  \`PREFIX\` varchar(10) DEFAULT NULL,
+  \`FIRST_NAME\` varchar(128) DEFAULT NULL,
+  \`LAST_NAME\` varchar(128) DEFAULT NULL,
+  \`ADDRESS_NO\` varchar(100) DEFAULT NULL,
+  \`ROAD\` varchar(100) DEFAULT NULL,
+  \`SUB_DISTRICT\` varchar(100) DEFAULT NULL,
+  \`DISTRICT\` varchar(100) DEFAULT NULL,
+  \`PROVINCE\` varchar(50) DEFAULT NULL,
+  \`PHONE_NO\` varchar(50) DEFAULT NULL,
+  \`CREATE_TIME\` datetime DEFAULT NULL COMMENT 'Create Time',
+  \`CREATE_BY\` int(11) DEFAULT NULL,
+  \`MODIFY_TIME\` datetime DEFAULT NULL,
+  \`MODIFY_BY\` int(11) DEFAULT NULL,
+  \`FINGERPRINT_PATH\` varchar(255) DEFAULT NULL,
+  \`FINGERPRINT_TYPE\` varchar(20) DEFAULT NULL,`;
+
+  const inpMain = document.querySelector("#inp-main");
+  inpMain.value = str;
+  inpMain.addEventListener("click", () => inpMain.select());
+
+  const btnGenerate = document.querySelector("#btn-generate");
+  const areaResultWrap = document.querySelector("#area-result-wrap");
+  const areaResult = document.querySelector("#area-result");
+  const areaOptMultiline = document.querySelector("#area-option-multiline");
+
+  let realVal = null;
+
+  function rawNameToVar(name) {
+	const arrName = name.split("");
+	let result = "";
+	let isFirst = true;
+	let isAfterUnder = false;
+	for (const c of arrName) {
+		if (isFirst) {
+			result += c.toLowerCase();
+			isFirst = false;
+		}
+		else if (c === "_") {
+			isAfterUnder = true;
+		}
+		else if (isAfterUnder) {
+			result += c.toUpperCase();
+			isAfterUnder = false;
+		}
+		else {
+			result += c.toLowerCase();
+		}
+	}
+	return result;
+  }
+
+  function generateModel(str) {
+	const arr = str.trim().split("\n");
+	let strOut = `@Data
+@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@AllArgsConstructor
+@NoArgsConstructor
+public class SomeClass {\n`;
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		strOut += `\t${objType["var"]} ${rawNameToVar(rawName)};\n`;
+	}
+	strOut += "}\n";
+	return strOut;
+  }
+
+  function generateInsert(str) {
+	const arr = str.trim().split("\n");
+	const arrCols = [];
+	const arrVals = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		arrCols.push(rawName);
+		arrVals.push(`#{${rawNameToVar(rawName)}}`);
+	}
+	return `INSERT INTO table_name (\n${arrCols.join(",\n")})\nVALUES (\n${arrVals.join(",\n")})`;
+  }
+
+  function generateSelect(str) {
+	const arr = str.trim().split("\n");
+	const arrCols = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		arrCols.push(`${rawName} AS ${rawNameToVar(rawName)}`);
+	}
+	return `SELECT\n${arrCols.join(",\n")}\nFROM table_name\nWHERE\n1=1`;
+  }
+
+  function generateDocRequest(str) {
+	const arr = str.trim().split("\n");
+	const docObj = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		docObj.push({
+			"name": rawNameToVar(rawName),
+			"type":  objType.jsType,
+			"position": "JSON BODY",
+			"isRequired": true,
+			"desc": ""
+		});
+	}
+	return JSON.stringify(docObj, null, "\t");
+  }
+
+  function generateDocResponse(str) {
+	const arr = str.trim().split("\n");
+	const docObj = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		docObj.push({
+			"name": rawNameToVar(rawName),
+			"type":  objType.jsType,
+			"ex": objType.sampleRequest,
+			"desc": ""
+		});
+	}
+	return JSON.stringify(docObj, null, "\t");
+  }
+
+  btnGenerate.addEventListener("click", () => {
+	const objTab = {
+		"items": [
+			{
+				"label": "Model",
+				"onClick": () => {
+					const result = generateModel(inpMain.value);
+					areaOptMultiline.style.display = "none";
+					areaResult.innerHTML = result;
+				}
+			},
+			{
+				"label": "Insert",
+				"onClick": () => {
+					const result = generateInsert(inpMain.value);
+					realVal = result;
+					areaOptMultiline.style.display = "inline-block";
+					areaOptMultiline.childNodes[0].checked = false;
+					areaResult.innerHTML = result;
+				}
+			},
+			{
+				"label": "Select",
+				"onClick": () => {
+					const result = generateSelect(inpMain.value);
+					realVal = result;
+					areaOptMultiline.style.display = "inline-block";
+					areaOptMultiline.childNodes[0].checked = false;
+					areaResult.innerHTML = result;
+				}
+			},
+			{
+				"label": "Doc Req.",
+				"onClick": () => {
+					const result = generateDocRequest(inpMain.value);
+					areaOptMultiline.style.display = "none";
+					areaResult.innerHTML = result;
+				}
+			},
+			{
+				"label": "Doc Resp.",
+				"onClick": () => {
+					const result = generateDocResponse(inpMain.value);
+					areaOptMultiline.style.display = "none";
+					areaResult.innerHTML = result;
+				}
+			}
+		]
+	}
+	const tab = new Tab(document.querySelector("#area-tab"), objTab);
+	const result = generateModel(inpMain.value);
+	areaResultWrap.style.display = "block";
+	areaResult.innerHTML = result;
+  });
+
+let invCopied = null;
+function copyText(btn) {
+	navigator.clipboard.writeText(areaResult.innerText);
+	btn.innerHTML = "Copied!";
+	if (invCopied) clearTimeout(invCopied);
+	invCopied = setTimeout(() => {
+		btn.innerHTML = "Copy";
+		invCopied = null;
+	}, 1000);
+}
+
+function convertToMultiline(str) {
+	const arr = str.split("\n");
+	const arrResult = [];
+	for (const line of arr) {
+		arrResult.push(`\"${line.trim().replaceAll("\"", "\\\"")}\\n\"`);
+	}
+	return arrResult.join(" +\n");
+}
+
+areaOptMultiline.childNodes[0].addEventListener("click", (e) => {
+	areaResult.innerHTML = e.target.checked ? convertToMultiline(realVal) : realVal;
+});
+</script>
+</body>
+
+</html>
