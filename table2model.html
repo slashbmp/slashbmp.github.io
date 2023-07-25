@@ -417,6 +417,7 @@ const str = `  \`ID\` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
   const areaResult = document.querySelector("#area-result");
   const areaOptMultiline = document.querySelector("#area-option-multiline");
 
+  let tabObj = null;
   let realVal = null;
 
   function rawNameToVar(name) {
@@ -584,65 +585,67 @@ public class SomeClass {\n`;
   }
 
   btnGenerate.addEventListener("click", () => {
-	const objTab = {
-		"items": [
-			{
-				"label": "Model",
-				"onClick": () => {
-					const result = generateModel(inpMain.value);
-					areaOptMultiline.style.display = "none";
-					areaResult.innerHTML = result;
+	if (!tabObj) {
+		const objTab = {
+			"items": [
+				{
+					"label": "Model",
+					"onClick": () => {
+						const result = generateModel(inpMain.value);
+						areaOptMultiline.style.display = "none";
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "Select",
+					"onClick": () => {
+						const result = generateSelect(inpMain.value);
+						realVal = result;
+						areaOptMultiline.style.display = "inline-block";
+						areaOptMultiline.childNodes[0].checked = false;
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "Insert",
+					"onClick": () => {
+						const result = generateInsert(inpMain.value);
+						realVal = result;
+						areaOptMultiline.style.display = "inline-block";
+						areaOptMultiline.childNodes[0].checked = false;
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "Update",
+					"onClick": () => {
+						const result = generateUpdate(inpMain.value);
+						realVal = result;
+						areaOptMultiline.style.display = "inline-block";
+						areaOptMultiline.childNodes[0].checked = false;
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "Doc Req.",
+					"onClick": () => {
+						const result = generateDocRequest(inpMain.value);
+						areaOptMultiline.style.display = "none";
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "Doc Resp.",
+					"onClick": () => {
+						const result = generateDocResponse(inpMain.value);
+						areaOptMultiline.style.display = "none";
+						areaResult.innerHTML = result;
+					}
 				}
-			},
-			{
-				"label": "Select",
-				"onClick": () => {
-					const result = generateSelect(inpMain.value);
-					realVal = result;
-					areaOptMultiline.style.display = "inline-block";
-					areaOptMultiline.childNodes[0].checked = false;
-					areaResult.innerHTML = result;
-				}
-			},
-			{
-				"label": "Insert",
-				"onClick": () => {
-					const result = generateInsert(inpMain.value);
-					realVal = result;
-					areaOptMultiline.style.display = "inline-block";
-					areaOptMultiline.childNodes[0].checked = false;
-					areaResult.innerHTML = result;
-				}
-			},
-			{
-				"label": "Update",
-				"onClick": () => {
-					const result = generateUpdate(inpMain.value);
-					realVal = result;
-					areaOptMultiline.style.display = "inline-block";
-					areaOptMultiline.childNodes[0].checked = false;
-					areaResult.innerHTML = result;
-				}
-			},
-			{
-				"label": "Doc Req.",
-				"onClick": () => {
-					const result = generateDocRequest(inpMain.value);
-					areaOptMultiline.style.display = "none";
-					areaResult.innerHTML = result;
-				}
-			},
-			{
-				"label": "Doc Resp.",
-				"onClick": () => {
-					const result = generateDocResponse(inpMain.value);
-					areaOptMultiline.style.display = "none";
-					areaResult.innerHTML = result;
-				}
-			}
-		]
+			]
+		}
+		tabObj = new Tab(document.querySelector("#area-tab"), objTab);
 	}
-	const tab = new Tab(document.querySelector("#area-tab"), objTab);
 	const result = generateModel(inpMain.value);
 	areaResultWrap.style.display = "block";
 	areaResult.innerHTML = result;
