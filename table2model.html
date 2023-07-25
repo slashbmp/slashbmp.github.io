@@ -384,7 +384,7 @@ const dataType = {
 }
 
 const str = `  \`ID\` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-  \`TICKET_ID\` varchar(12) NOT NULL,
+  \`TICKET_CODE\` varchar(12) NOT NULL,
   \`CARD_NO\` varchar(30) NOT NULL,
   \`CARD_TYPE\` varchar(15) DEFAULT NULL,
   \`DOB\` date DEFAULT NULL,
@@ -492,6 +492,26 @@ public class SomeClass {\n`;
 	return `INSERT INTO table_name (\n${arrCols.join(",\n")})\nVALUES (\n${arrVals.join(",\n")})`;
   }
 
+  function generateUpdate(str) {
+	const arr = str.trim().split("\n");
+	const arrCols = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		arrCols.push(`${rawName} = #{${rawNameToVar(rawName)}}`);
+	}
+	return `UPDATE table_name\nSET\n${arrCols.join(",\n")}\nWHERE 1 = 1`;
+  }
+
   function generateSelect(str) {
 	const arr = str.trim().split("\n");
 	const arrCols = [];
@@ -575,6 +595,16 @@ public class SomeClass {\n`;
 				}
 			},
 			{
+				"label": "Select",
+				"onClick": () => {
+					const result = generateSelect(inpMain.value);
+					realVal = result;
+					areaOptMultiline.style.display = "inline-block";
+					areaOptMultiline.childNodes[0].checked = false;
+					areaResult.innerHTML = result;
+				}
+			},
+			{
 				"label": "Insert",
 				"onClick": () => {
 					const result = generateInsert(inpMain.value);
@@ -585,9 +615,9 @@ public class SomeClass {\n`;
 				}
 			},
 			{
-				"label": "Select",
+				"label": "Update",
 				"onClick": () => {
-					const result = generateSelect(inpMain.value);
+					const result = generateUpdate(inpMain.value);
 					realVal = result;
 					areaOptMultiline.style.display = "inline-block";
 					areaOptMultiline.childNodes[0].checked = false;
