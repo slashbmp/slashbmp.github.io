@@ -471,6 +471,26 @@ public class SomeClass {\n`;
 	return strOut;
   }
 
+  function generateJs(str) {
+	const arr = str.trim().split("\n");
+	const arrCols = [];
+	for (const line of arr) {
+		const strLine = line.trim();
+		if (!strLine) continue;
+		const arrCol = strLine.split(" ");
+		const rawName = arrCol[0].trim().replaceAll("`", "");
+		let rawType = arrCol[1].trim().toUpperCase();
+		const n = rawType.indexOf("(");
+		if (n >= 0) {
+			rawType = rawType.substr(0, n);
+		}
+		const objType = dataType[rawType];
+		if (!objType) continue;
+		arrCols.push(`\t${rawNameToVar(rawName)}: ${isNaN(objType.sampleRequest) ? `"${objType.sampleRequest}"` : objType.sampleRequest}`);
+	}
+	return `{\n${arrCols.join(",\n")}\n}`;
+  }
+
   function generateInsert(str) {
 	const arr = str.trim().split("\n");
 	const arrCols = [];
@@ -589,7 +609,7 @@ public class SomeClass {\n`;
 		const objTab = {
 			"items": [
 				{
-					"label": "Model",
+					"label": "JAVA",
 					"onClick": () => {
 						const result = generateModel(inpMain.value);
 						areaOptMultiline.style.display = "none";
@@ -597,7 +617,15 @@ public class SomeClass {\n`;
 					}
 				},
 				{
-					"label": "Select",
+					"label": "JS",
+					"onClick": () => {
+						const result = generateJs(inpMain.value);
+						areaOptMultiline.style.display = "none";
+						areaResult.innerHTML = result;
+					}
+				},
+				{
+					"label": "SELECT",
 					"onClick": () => {
 						const result = generateSelect(inpMain.value);
 						realVal = result;
@@ -607,7 +635,7 @@ public class SomeClass {\n`;
 					}
 				},
 				{
-					"label": "Insert",
+					"label": "INSERT",
 					"onClick": () => {
 						const result = generateInsert(inpMain.value);
 						realVal = result;
@@ -617,7 +645,7 @@ public class SomeClass {\n`;
 					}
 				},
 				{
-					"label": "Update",
+					"label": "UPDATE",
 					"onClick": () => {
 						const result = generateUpdate(inpMain.value);
 						realVal = result;
