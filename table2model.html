@@ -457,7 +457,7 @@ public class SomeClass {\n`;
 		const strLine = line.trim();
 		if (!strLine) continue;
 		const arrCol = strLine.split(" ");
-		const rawName = arrCol[0].trim().replaceAll("`", "");
+		const rawName = arrCol[0].trim().replaceAll("`", "").replace("[", "").replace("]", "");
 		let rawType = arrCol[1].trim().toUpperCase();
 		const n = rawType.indexOf("(");
 		if (n >= 0) {
