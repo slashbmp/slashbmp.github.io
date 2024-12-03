@@ -112,7 +112,7 @@ class NeoMultipleFileUpload {
     }
   }
   
-  getFile() {
+  getFiles() {
   	return this.files;
   }
   
