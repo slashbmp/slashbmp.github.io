@@ -41,7 +41,6 @@ class NeoMultipleFileUpload {
   
   selectedFile(e) {
   	const fileNow = e.target.files[0];
-    console.log(fileNow);
     if (fileNow.size > this.sizeLimit) {
     	alert("Invalid file size");
     	return;
@@ -50,7 +49,7 @@ class NeoMultipleFileUpload {
   }
   
   adjustDivBox(div) {
-  	div.style.width = "100px";
+    div.style.width = "100px";
     div.style.height = "100px";
     div.style.borderRadius = "5px";
     div.style.backgroundSize = "cover";
@@ -60,8 +59,8 @@ class NeoMultipleFileUpload {
   }
   
   appendFile(file) {
-  	if (!this.files.length) {
-    	this.inner = this.area.innerHTML;
+    if (!this.files.length) {
+      this.inner = this.area.innerHTML;
       this.area.innerHTML = "";
       this.area.onclick = null;
     }
@@ -69,7 +68,7 @@ class NeoMultipleFileUpload {
     	this.addBtn.remove();
     }
     
-  	this.files.push(file);
+    this.files.push(file);
     const fr = new FileReader();
     fr.onload = () => {
     	const divBox = document.createElement("div");
@@ -90,6 +89,7 @@ class NeoMultipleFileUpload {
       
       divBox.appendChild(redHot);
       this.area.appendChild(divBox);
+      this.fileNow.remove();
       if (this.files.length < this.fileLimit) this.area.appendChild(this.addBtn);
      
     };
