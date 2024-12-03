@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Multiple-Uploader.js</title>
+    <link href="./src/css/main.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+    <div class="multiple-uploader" id="multiple-uploader">
+        <div class="mup-msg">
+            <span class="mup-main-msg">click to upload images.</span>
+            <span class="mup-msg" id="max-upload-number">Upload up to 10 images</span>
+            <span class="mup-msg">Only images, pdf and psd files are allowed for upload</span>
+        </div>
+    </div>
+
+    <form action="" method="" enctype="multipart/form-data" id="my-form">
+        <button id="aaa">Submit</button>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="neo-multiple-file-upload.js"></script>
+    <script>
+
+        // token = localStorage.getItem('GOVtoken')
+        token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ6ZWFsbmV3c1NhbyIsImV4cCI6MTczMzkwNDI1NywiaWF0IjoxNzMxMzEyMjU3LCJrZXkiOiI2NzJmNmM1NTQ2ZTBmYjAwMDFlODEwZjkifQ.yTBpzhc2Pg9SUAfbjnCPgoli1rKQEqcQHmwpedmpHXo'
+
+	
+	const neo = new NeoMultipleFileUpload("multiple-uploader", 10, 15000000, ".jpg, .jpeg, .pdf, .psd");
+
+        $('#aaa').on('click', (e) => {
+            e.preventDefault()
+
+            const formData = new FormData();
+
+            $.each(neo.getFiles(), function (i, file) {
+                formData.append('file', file);
+            });
+
+            formData.append('type', 'image');
+
+            $.ajax({
+                type: "POST",
+                headers: {
+                    token: token
+                },
+                url: `https://api.localplus.zealnews.info/zealSao/uploadMulti`,
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log(response)
+                },
+                error: function (error) {
+                    console.log(error)
+                }
+            });
+
+
+        })
+
+    </script>
+
+</body>
+
+</html>
