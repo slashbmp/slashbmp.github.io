@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<title></title>
+	<script src="js-lib/tiff.min.js"></script>
+</head>
+
+<body>
+	<input type="file" id="inp-file" />
+	<div id="dsp"></div>
+	<script>
+const inpFile = document.querySelector("#inp-file");
+const areaDsp = document.querySelector("#dsp");
+
+const displayTiff = (buffer) => {
+	const tiff = new Tiff({ buffer: buffer });
+	const width = tiff.width();
+	const height = tiff.height();
+	const canvas = tiff.toCanvas();
+  areaDsp.innerHTML = "";
+  areaDsp.appendChild(canvas);
+}
+
+const fileSelected = (e) => {
+	const fr = new FileReader();
+  fr.onload = e => {
+  	const buffer = e.target.result;
+    displayTiff(buffer);
+  }
+  fr.readAsArrayBuffer(e.target.files[0]);
+}
+
+inpFile.addEventListener("change", fileSelected);
+	</script>
+</body>
+
+</html>
