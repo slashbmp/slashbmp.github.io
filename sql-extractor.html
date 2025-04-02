@@ -294,7 +294,7 @@ function javaFormat(str) {
 	for (let i = 0; i < arr.length; i++) {
 		const line = arr[i];
 		if (i > 0) strOut += "+ ";
-		strOut += "\"" + line.replace("\t", "\\t").replace("\r", "");
+		strOut += "\"" + line.replaceAll("\t", "\\t").replaceAll("\r", "");
 		if (i < (arr.length - 1)) strOut += "\\n\"\n";
 		else strOut += "\"";
 	}

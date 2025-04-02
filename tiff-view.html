@@ -7,7 +7,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 	<title></title>
-	<script src="js-lib/tiff.min.js"></script>
+	<script src="https://cdn.rawgit.com/seikichi/tiff.js/master/tiff.min.js"></script>
 </head>
 
 <body>
@@ -18,21 +18,26 @@ const inpFile = document.querySelector("#inp-file");
 const areaDsp = document.querySelector("#dsp");
 
 const displayTiff = (buffer) => {
-	const tiff = new Tiff({ buffer: buffer });
-	const width = tiff.width();
-	const height = tiff.height();
-	const canvas = tiff.toCanvas();
-  areaDsp.innerHTML = "";
-  areaDsp.appendChild(canvas);
+	const tiff = new Tiff({ buffer });
+	for (let i = 0, l = tiff.countDirectory(); i < l; ++i) {
+		tiff.setDirectory(i);
+		const cv = tiff.toCanvas();
+		areaDsp.appendChild(cv);
+	}
+  
 }
 
 const fileSelected = (e) => {
 	const fr = new FileReader();
-  fr.onload = e => {
-  	const buffer = e.target.result;
-    displayTiff(buffer);
-  }
-  fr.readAsArrayBuffer(e.target.files[0]);
+	fr.onload = e => {
+		const str = fr.resultString ? fr.resultString : fr.result;
+		const result = new Uint8Array(str.length);
+		for (let i =0; i < str.length; i++) {
+			result[i] = str.charCodeAt(i);
+		}
+		displayTiff(result.buffer);
+	}
+	fr.readAsBinaryString(e.target.files[0]);
 }
 
 inpFile.addEventListener("change", fileSelected);

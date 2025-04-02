@@ -444,6 +444,11 @@ const str = `  \`ID\` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
 	return result;
   }
 
+  function varNameToClass(name) {
+	const varName = rawNameToVar(name);
+	return varName.charAt(0).toUpperCase() + varName.substring(1);
+  }
+
   function generateModel(str) {
 	const arr = str.trim().split("\n");
 	let strOut = `@Data
@@ -516,6 +521,7 @@ public class SomeClass {\n`;
   function generateUpdate(str) {
 	const arr = str.trim().split("\n");
 	const arrCols = [];
+	const arrClassUpdate = [];
 	for (const line of arr) {
 		const strLine = line.trim();
 		if (!strLine) continue;
@@ -528,9 +534,11 @@ public class SomeClass {\n`;
 		}
 		const objType = dataType[rawType];
 		if (!objType) continue;
-		arrCols.push(`${rawName} = #{${rawNameToVar(rawName)}}`);
+		const varName = rawNameToVar(rawName);
+		arrCols.push(`${rawName} = #{${varName}}`);
+		arrClassUpdate.push(`.${varName}(updateData.get${varNameToClass(varName)}())`);
 	}
-	return `UPDATE table_name\nSET\n${arrCols.join(",\n")}\nWHERE 1 = 1`;
+	return `UPDATE table_name\nSET\n${arrCols.join(",\n")}\nWHERE 1 = 1\n\n${arrClassUpdate.join("\n")}`;
   }
 
   function generateSelect(str) {

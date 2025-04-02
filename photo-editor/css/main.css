@@ -1,0 +1,39 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	background-color: #0E1B2B;
+}
+
+#container {
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+}
+
+#panel_left {
+	width: 100px;
+	height: 100vh;
+	background-color: #1B263A;
+}
+
+#panel_mid {
+	flex-grow: 1;
+	height: 100vh;
+	background-color: #5A768C;
+}
+
+#panel_right {
+	width: 200px;
+	height: 100vh;
+	background-color: #2E4058;
+	position: relative;
+}
+
+#panel_layers {
+	position: absolute;
+	height: 50%;
+	width: 100%;
+	background-color: #ff00ff;
+	bottom: 0;
+}
